@@ -50,6 +50,7 @@ class TenderSwitchUnsuccessfulResourceTest(BaseTenderContentWebTest):
         self.assertEqual(response.status, '200 OK')
         self.assertEqual(response.content_type, 'application/json')
         self.assertEqual(response.json['data']["status"], "unsuccessful")
+        self.assertIn('date', response.json['data'])
 
 #
 # class TenderLotSwitchQualificationResourceTest(BaseTenderWebTest):

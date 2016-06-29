@@ -1188,6 +1188,7 @@ class TenderProcessTest(BaseTenderWebTest):
         # check status
         response = self.app.get('/tenders/{}'.format(tender_id))
         self.assertEqual(response.json['data']['status'], 'cancelled')
+        self.assertIn('date', response.json['data'])
 
     def test_one_bid_tender(self):
         self.app.authorization = ('Basic', ('broker', ''))
@@ -1210,9 +1211,11 @@ class TenderProcessTest(BaseTenderWebTest):
         self.app.authorization = ('Basic', ('chronograph', ''))
         response = self.app.patch_json('/tenders/{}'.format(tender_id), {"data": {"id": tender_id}})
         # tender should switch to "unsuccessful"
+        self.app.authorization = ('Basic', ('broker', ''))
         response = self.app.get('/tenders/{}'.format(tender_id))
         self.assertEqual(response.status, "200 OK")
         self.assertEqual(response.json['data']['status'], "unsuccessful")
+        self.assertIn('date', response.json['data'])
 
     def test_one_qualificated_bid_tender(self):
         self.app.authorization = ('Basic', ('broker', ''))
@@ -1280,9 +1283,11 @@ class TenderProcessTest(BaseTenderWebTest):
         self.app.authorization = ('Basic', ('chronograph', ''))
         response = self.app.patch_json('/tenders/{}'.format(tender_id), {"data": {"id": tender_id}})
         # ensure that tender has been switched to "unsuccessful"
+        self.app.authorization = ('Basic', ('broker', ''))
         response = self.app.get('/tenders/{}'.format(tender_id))
         self.assertEqual(response.status, "200 OK")
         self.assertEqual(response.json['data']['status'], "unsuccessful")
+        self.assertIn('date', response.json['data'])
 
     def test_multiple_bidders_tender(self):
         # create tender
@@ -1432,6 +1437,7 @@ class TenderProcessTest(BaseTenderWebTest):
         self.app.authorization = ('Basic', ('broker', ''))
         response = self.app.get('/tenders/{}'.format(tender_id))
         self.assertEqual(response.json['data']['status'], 'complete')
+        self.assertIn('date', response.json['data'])
 
 
 def suite():

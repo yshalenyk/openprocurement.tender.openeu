@@ -31,6 +31,7 @@ def check_initial_bids_count(request):
         for i in tender.lots:
             if i.numberOfBids < 2 and i.status == 'active':
                 setattr(i, 'status', 'unsuccessful')
+                setattr(i, 'date', get_now())
                 for bid_index, bid in enumerate(tender.bids):
                     for lot_index, lot_value in enumerate(bid.lotValues):
                         if lot_value.relatedLot == i.id:
@@ -42,12 +43,14 @@ def check_initial_bids_count(request):
             LOGGER.info('Switched tender {} to {}'.format(tender.id, 'unsuccessful'),
                         extra=context_unpack(request, {'MESSAGE_ID': 'switched_tender_unsuccessful'}))
             tender.status = 'unsuccessful'
+            setattr(tender, 'date', get_now())
     elif tender.numberOfBids < 2:
         LOGGER.info('Switched tender {} to {}'.format(tender.id, 'unsuccessful'),
                     extra=context_unpack(request, {'MESSAGE_ID': 'switched_tender_unsuccessful'}))
         if tender.auctionPeriod and tender.auctionPeriod.startDate:
             tender.auctionPeriod.startDate = None
         tender.status = 'unsuccessful'
+        setattr(tender, 'date', get_now())
 
 
 def prepare_qualifications(request, bids=[], lotId=None):
@@ -219,6 +222,7 @@ def add_next_award(request):
             ]
             if not bids:
                 lot.status = 'unsuccessful'
+                lot.date = get_now()
                 statuses.add('unsuccessful')
                 continue
             unsuccessful_awards = [i.bid_id for i in lot_awards if i.status == 'unsuccessful']

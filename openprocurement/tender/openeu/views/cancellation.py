@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from openprocurement.api.utils import opresource
+from openprocurement.api.models import get_now
 from openprocurement.api.views.cancellation import TenderCancellationResource as BaseResource
 from openprocurement.tender.openeu.utils import add_next_award
 
@@ -19,12 +20,14 @@ class TenderCancellationResource(BaseResource):
         if tender.status in ['active.pre-qualification', 'active.pre-qualification.stand-still', 'active.auction']:
             [setattr(i, 'status', 'invalid') for i in tender.bids]
         tender.status = 'cancelled'
+        tender.date = get_now()
 
     def cancel_lot(self, cancellation=None):
         if not cancellation:
             cancellation = self.context
         tender = self.request.validated['tender']
         [setattr(i, 'status', 'cancelled') for i in tender.lots if i.id == cancellation.relatedLot]
+        [setattr(i, 'date', get_now()) for i in tender.lots if i.status == 'cancelled']
         cancelled_lots = [i.id for i in tender.lots if i.status == 'cancelled']
         cancelled_items = [i.id for i in tender.items if i.relatedLot in cancelled_lots]
         cancelled_features = [
@@ -51,8 +54,10 @@ class TenderCancellationResource(BaseResource):
             self.cancel_tender()
         elif not statuses.difference(set(['unsuccessful', 'cancelled'])):
             tender.status = 'unsuccessful'
+            tender.date = get_now()
         elif not statuses.difference(set(['complete', 'unsuccessful', 'cancelled'])):
             tender.status = 'complete'
+            tender.date = get_now()
         if tender.status == 'active.auction' and all([
             i.auctionPeriod and i.auctionPeriod.endDate
             for i in self.request.validated['tender'].lots
